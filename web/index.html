@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>海辰商务楼 · 快递柜调度系统</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<div id="login" class="login-wrap hidden">
+  <div class="login-card">
+    <div class="brand"><span class="brand-mark">柜</span>
+      <div><h1>海辰商务楼快递柜调度</h1>
+      <p>满仓转移 · 超时退回 · 异常封存（演示环境，数据均为虚构）</p></div>
+    </div>
+    <div id="login-ids" class="login-grid"></div>
+  </div>
+</div>
+
+<div id="app" class="app hidden">
+  <aside class="sidebar">
+    <div class="side-brand"><span class="brand-mark sm">柜</span>
+      <div><b>快递柜调度</b><small id="side-who"></small></div></div>
+    <nav id="nav"></nav>
+    <div class="side-foot">
+      <div id="mini-stats"></div>
+      <button class="btn ghost sm" id="btn-logout">切换身份</button>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div id="crumb" class="crumb"></div>
+      <div class="top-actions">
+        <span id="clock" class="clock"></span>
+        <button class="btn ghost sm" id="btn-refresh">刷新</button>
+      </div>
+    </header>
+    <div id="toast" class="toast hidden"></div>
+    <div id="view" class="view"></div>
+  </main>
+</div>
+<script src="/static/app.js"></script>
+</body>
+</html>
