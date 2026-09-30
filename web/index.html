@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>云岸商务楼 · 快递柜满仓转移与超时退回系统</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">柜</div>
+    <div>
+      <div class="brand-title">云岸商务楼 · 智能快递柜</div>
+      <div class="brand-sub">满仓转移 / 超时退回 / 异常封存 一体化平台</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="clock" id="clock"></span>
+    <label class="user-switch">
+      <span class="user-switch-label">当前操作人</span>
+      <select id="userSelect"></select>
+    </label>
+  </div>
+</header>
+
+<nav class="mainnav">
+  <button class="navbtn active" data-view="dashboard">总览</button>
+  <button class="navbtn" data-view="lockers">柜机格口图 · 入柜</button>
+  <button class="navbtn" data-view="shelves">人工货架</button>
+  <button class="navbtn" data-view="pickup">取件核验</button>
+  <button class="navbtn" data-view="overdue">超时队列</button>
+  <button class="navbtn" data-view="returns">退回交接</button>
+  <button class="navbtn" data-view="approvals">强开审批</button>
+</nav>
+
+<main>
+  <!-- 总览 -->
+  <section class="view active" id="view-dashboard">
+    <div class="kpi-row" id="kpiRow"></div>
+    <div class="card">
+      <div class="card-head"><h2>柜机满仓率</h2><span class="hint">满仓率显示在各柜机标题旁</span></div>
+      <div class="locker-cards" id="dashLockers"></div>
+    </div>
+  </section>
+
+  <!-- 柜机 -->
+  <section class="view" id="view-lockers">
+    <div class="split">
+      <div class="split-main">
+        <div class="card">
+          <div class="card-head">
+            <div class="head-left">
+              <select id="lockerSelect" class="big-select"></select>
+              <h2 id="lockerTitle"></h2>
+              <span class="rate-badge" id="lockerRate"></span>
+            </div>
+            <div class="legend">
+              <span><i class="dot free"></i>空闲</span>
+              <span><i class="dot occupied"></i>占用</span>
+              <span><i class="dot allocating"></i>开门中</span>
+              <span><i class="dot open"></i>门未关</span>
+              <span><i class="dot fault"></i>故障</span>
+              <span class="legend-size"><i class="sz L"></i>大</span>
+              <span class="legend-size"><i class="sz M"></i>中</span>
+              <span class="legend-size"><i class="sz S"></i>小</span>
+            </div>
+          </div>
+          <div class="comp-map" id="compMap"></div>
+        </div>
+      </div>
+      <aside class="split-side">
+        <div class="card workflow-card">
+          <div class="card-head"><h2>入柜 / 转移工作流</h2><span class="hint">连续路径，无需多层弹窗</span></div>
+          <ol class="stepper" id="stepper">
+            <li data-step="1"><b>1</b>扫描运单</li>
+            <li data-step="2"><b>2</b>匹配 / 异常分流</li>
+            <li data-step="3"><b>3</b>关门回执</li>
+            <li data-step="4"><b>4</b>完成通知</li>
+          </ol>
+          <div class="wf-body" id="wfBody"></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 货架 -->
+  <section class="view" id="view-shelves">
+    <div class="split">
+      <div class="split-main">
+        <div class="card">
+          <div class="card-head">
+            <div class="head-left">
+              <select id="shelfSelect" class="big-select"></select>
+              <h2 id="shelfTitle"></h2>
+            </div>
+            <span class="hint">按架号 → 层号 → 位号高密度定位；Q 架为异常封存区</span>
+          </div>
+          <div id="shelfMap"></div>
+        </div>
+      </div>
+      <aside class="split-side" id="shelfSide">
+        <div class="card"><div class="card-head"><h2>定位与操作</h2></div>
+          <div id="shelfBody" class="pane-body"><p class="empty">点击左侧任一货位查看包裹与操作。</p></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 取件 -->
+  <section class="view" id="view-pickup">
+    <div class="narrow">
+      <div class="card">
+        <div class="card-head"><h2>取件核验</h2><span class="hint">本人核手机尾号 · 前台代取必须核授权</span></div>
+        <div class="pane-body" id="pickupBody"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 超时 -->
+  <section class="view" id="view-overdue">
+    <div class="card">
+      <div class="card-head">
+        <h2>超时队列</h2>
+        <div>
+          <button class="btn ghost" id="btnRunScheduler">立即执行超时/重试扫描</button>
+          <span class="hint">进程内任务每 10 秒自动扫描</span>
+        </div>
+      </div>
+      <table class="grid-table">
+        <thead><tr><th>运单</th><th>公司</th><th>收件人代号</th><th>位置</th><th>尺寸</th><th>时限</th><th>当前有效码</th><th>操作</th></tr></thead>
+        <tbody id="overdueBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 退回 -->
+  <section class="view" id="view-returns">
+    <div class="card">
+      <div class="card-head"><h2>退回交接</h2><span class="hint">超时无人取 → 待交接；快递公司签收或拒收封存</span></div>
+      <table class="grid-table">
+        <thead><tr><th>运单</th><th>公司</th><th>收件人代号</th><th>原因</th><th>入队时间</th><th>位置</th><th>状态</th><th>操作</th></tr></thead>
+        <tbody id="returnsBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 审批 -->
+  <section class="view" id="view-approvals">
+    <div class="card">
+      <div class="card-head"><h2>强制开柜审批</h2><span class="hint">快递员可申请，仅物业可批准；批准后方可执行</span></div>
+      <table class="grid-table">
+        <thead><tr><th>#</th><th>柜机格口</th><th>申请人</th><th>事由</th><th>时间</th><th>状态</th><th>审批意见</th><th>操作</th></tr></thead>
+        <tbody id="approvalsBody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- 包裹详情侧栏（单层抽屉，不使用多层弹窗） -->
+<div class="drawer-mask" id="drawerMask"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <h2 id="drawerTitle">包裹详情</h2>
+    <button class="btn icon" id="drawerClose">×</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<div class="toast-wrap" id="toastWrap"></div>
+<script src="app.js"></script>
+</body>
+</html>
